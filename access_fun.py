@@ -2,16 +2,15 @@ from datetime import datetime as dt
 from db.access_file_user import find_by_user, update_user, df
 
 def login(user: str, password: str) -> bool:
-    """
+    '''
     Verifica se o login é válido.
-
     Parâmetros:
         - user (str): nome do usuário
         - password (str): senha do usuário
 
     Retorno:
         - True se credenciais corretas, False caso contrário
-    """
+    '''
     result = find_by_user(user)
     
     if result.empty:
@@ -21,9 +20,8 @@ def login(user: str, password: str) -> bool:
     return saved_password == password
 
 def resetPassword(user: str, password: str, new_password: str) -> str:
-    """
+    '''
     Redefine a senha do usuário.
-
     Parâmetros:
         - user (str): nome do usuário
         - password (str): senha atual
@@ -31,7 +29,7 @@ def resetPassword(user: str, password: str, new_password: str) -> str:
 
     Retorno:
         - Mensagem de sucesso ou erro
-    """
+    '''
     if not login(user, password):
         return "Erro: credenciais inválidas!"
 
@@ -39,9 +37,8 @@ def resetPassword(user: str, password: str, new_password: str) -> str:
     return "Senha atualizada com sucesso!"
 
 def updateUser(user: str, password: str, new_user: str) -> str:
-    """
+    '''
     Modifica o nome do usuário.
-
     Parâmetros:
         - user (str): nome atual do usuário
         - password (str): senha do usuário
@@ -49,7 +46,7 @@ def updateUser(user: str, password: str, new_user: str) -> str:
 
     Retorno:
         - Mensagem de sucesso ou erro
-    """
+    '''
     try:
         if not login(user, password):
             return "Erro: credenciais inválidas!"
