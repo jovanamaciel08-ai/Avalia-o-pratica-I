@@ -1,57 +1,68 @@
 from datetime import datetime as dt
-from db import *
+from db.access_file_user import find_by_user, update_user, df
 
-#Função para realizar o login
 def login(user: str, password: str) -> bool:
-    '''
-    Função para verificar se o login é válido.
+    """
+    Verifica se o login é válido.
 
     Parâmetros:
         - user (str): nome do usuário
         - password (str): senha do usuário
-    
-    Retorno: retornará um valor true ou false
-    '''
-    df = find_by_user(user)
-    if df.iloc[0,2] == password:
-        return True
-    
-    return False
 
-#Função para redefinir a senha
-def resetpassword(user: str, password: str, new_password: str) -> str:
-    '''
-    Função para redefinir a senha do usuário.
-
-    Parâmetros:
-        - user (str): nome do usuário
-        - new_password (str): senha atualizada para registrar
+    Retorno:
+        - True se credenciais corretas, False caso contrário
+    """
+    result = find_by_user(user)
     
-    Retorno: Uma String confirmando ou recusando a modificação da senha
-    '''
-    if login(user, password):
-        db[user] = new_password
-        return "Senha Alterada!"
-    
-    return "Error: Credenciais Inválida!"
+    if result.empty:
+        return False
 
-#Função para modificar o nome do usuário
-def updateUser(user: str, password: str, new_user: str) -> object:
-    '''
-    Função para modificar o nome do usuário.
+    saved_password = result.iloc[0]["password"]
+    return saved_password == password
+
+def resetPassword(user: str, password: str, new_password: str) -> str:
+    """
+    Redefine a senha do usuário.
 
     Parâmetros:
         - user (str): nome do usuário
+        - password (str): senha atual
+        - new_password (str): nova senha
+
+    Retorno:
+        - Mensagem de sucesso ou erro
+    """
+    if not login(user, password):
+        return "Erro: credenciais inválidas!"
+
+    update_user(user, new_password)
+    return "Senha atualizada com sucesso!"
+
+def updateUser(user: str, password: str, new_user: str) -> str:
+    """
+    Modifica o nome do usuário.
+
+    Parâmetros:
+        - user (str): nome atual do usuário
         - password (str): senha do usuário
-        - new_password (str): novo nome do usuário
+        - new_user (str): novo nome de usuário
 
-    Retorno: confirma a modificação do usuário.
-        Caso seja disparado algum erro será gerado um log.
-    '''
+    Retorno:
+        - Mensagem de sucesso ou erro
+    """
     try:
-        if login(user, password):
-            db[new_user] = db.pop(user)
-            return 'Usuário atualizou co sucesso!'
+        if not login(user, password):
+            return "Erro: credenciais inválidas!"
 
-    except:
-        print(f'log:[{dt.date}] - [{dt.time}]: Error no Servidor!')
+        if not find_by_user(new_user).empty:
+            return "Erro: este nome já está em uso!"
+
+        df.loc[df["user"] == user, "user"] = new_user
+        df.to_json('./users.json', force_ascii=False, indent=4, orient='records')
+
+        return "Usuário atualizado com sucesso!"
+
+    except Exception as e:
+        now = dt.now()
+        print(f"log:[{now.date()} - {now.time()}]: Erro no servidor! Detalhe: {e}")
+        return "Erro: não foi possível atualizar o usuário."
